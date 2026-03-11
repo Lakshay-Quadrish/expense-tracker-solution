@@ -1,0 +1,38 @@
+# Ignore node modules
+node_modules/
+
+# Ignore environment variables
+.env
+.env.local
+.env.production
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore backup files
+*.backup
+*.bak
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore build and deployment artifacts
+render-deploy/
+*.zip
+main_bundle.js
+chunk_*.js
+dist/
+build/
+www/api.js
+www/app.js
+www/style.css
+www/index.html
+www/migrate-data.html

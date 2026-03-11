@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Data - Expense Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            color: white;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .status {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .warning {
+            color: #fbbf24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📦 Data Migration Tool</h1>
+        <p>This tool will migrate your expenses from localStorage to the MongoDB database.</p>
+
+        <div class="status" id="status">
+            <div class="status-item">Ready to migrate...</div>
+        </div>
+
+        <button id="migrateBtn" onclick="migrateData()">Start Migration</button>
+        <button id="clearBtn" onclick="clearLocalStorage()" style="background: rgba(255, 0, 0, 0.6);">Clear localStorage
+            Only</button>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        function addStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const item = document.createElement('div');
+            item.className = `status-item ${type}`;
+            item.textContent = message;
+            statusDiv.appendChild(item);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        async function checkServerConnection() {
+            try {
+                const response = await fetch('http://localhost:3000/');
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function migrateData() {
+            const migrateBtn = document.getElementById('migrateBtn');
+            migrateBtn.disabled = true;
+
+            addStatus('🔍 Checking server connection...', 'info');
+
+            const isConnected = await checkServerConnection();
+            if (!isConnected) {
+                addStatus('❌ Cannot connect to server. Please start the backend server first.', 'error');
+                addStatus('Run: cd server && npm install && npm start', 'warning');
+                migrateBtn.disabled = false;
+                return;
+            }
+
+            addStatus('✅ Server is running', 'success');
+            addStatus('📖 Reading localStorage...', 'info');
+
+            const expensesData = localStorage.getItem('expenses');
+
+            if (!expensesData) {
+                addStatus('⚠️  No data found in localStorage', 'warning');
+                migrateBtn.disabled = false;
+                return;
+            }
+
+            let expenses;
+            try {
+                expenses = JSON.parse(expensesData);
+            } catch (error) {
+                addStatus('❌ Failed to parse localStorage data', 'error');
+                migrateBtn.disabled = false;
+                return;
+            }
+
+            if (!Array.isArray(expenses) || expenses.length === 0) {
+                addStatus('⚠️  No expenses to migrate', 'warning');
+                migrateBtn.disabled = false;
+                return;
+            }
+
+            addStatus(`📊 Found ${expenses.length} expenses to migrate`, 'info');
+            addStatus('🚀 Starting migration...', 'info');
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (let i = 0; i < expenses.length; i++) {
+                const expense = expenses[i];
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/expenses`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            amount: expense.amount,
+                            category: expense.category,
+                            date: expense.date,
+                            notes: expense.notes || ''
+                        })
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                        addStatus(`✅ Migrated expense ${i + 1}/${expenses.length}: ${expense.category} - ₹${expense.amount}`, 'success');
+                    } else {
+                        errorCount++;
+                        const error = await response.json();
+                        addStatus(`❌ Failed to migrate expense ${i + 1}: ${error.message}`, 'error');
+                    }
+                } catch (error) {
+                    errorCount++;
+                    addStatus(`❌ Error migrating expense ${i + 1}: ${error.message}`, 'error');
+                }
+            }
+
+            addStatus('', 'info');
+            addStatus(`🎉 Migration complete!`, 'success');
+            addStatus(`✅ Successfully migrated: ${successCount}`, 'success');
+            if (errorCount > 0) {
+                addStatus(`❌ Failed: ${errorCount}`, 'error');
+            }
+
+            if (successCount > 0 && errorCount === 0) {
+                addStatus('', 'info');
+                addStatus('💡 You can now safely clear localStorage using the button below', 'warning');
+            }
+
+            migrateBtn.disabled = false;
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Are you sure you want to clear localStorage? This cannot be undone!')) {
+                localStorage.removeItem('expenses');
+                addStatus('🗑️  localStorage cleared', 'success');
+                addStatus('✅ Migration complete. You can now close this page and use the main app.', 'success');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Expense Tracker | Premium Dashboard</title>
+    <!-- Google Fonts: Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-container">
+        <div class="splash-content" style="text-align: center;">
+            <i class="fa-solid fa-wallet" style="font-size: 4rem; margin-bottom: 20px;"></i>
+            <h1 style="font-weight: 800; letter-spacing: -1px;">EXPENSE TRACKER</h1>
+            <div
+                style="width: 150px; height: 3px; background: rgba(255,255,255,0.2); margin: 20px auto; border-radius: 10px; overflow: hidden;">
+                <div style="width: 50%; height: 100%; background: white; animation: slide 2s infinite;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Wrapper -->
+    <div id="auth-section" class="auth-wrapper">
+        <div id="login-card" class="auth-card">
+            <div class="auth-header">
+                <div class="logo"><i class="fa-solid fa-wallet"></i></div>
+                <h2>Welcome Back</h2>
+                <p>Manage your finances with style</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="name@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; justify-content: center; padding: 16px;">Sign In</button>
+            </form>
+            <div style="text-align: center; margin-top: 24px;">
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Don't have an account? <a href="#"
+                        id="to-signup" style="color: var(--primary); font-weight: 700; text-decoration: none;">Create
+                        One</a></p>
+            </div>
+        </div>
+
+        <!-- Signup Card -->
+        <div id="signup-card" class="auth-card hidden">
+            <div class="auth-header">
+                <div class="logo"><i class="fa-solid fa-user-plus"></i></div>
+                <h2>Join Us</h2>
+                <p>Start your financial journey today</p>
+            </div>
+            <form id="signup-form">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signup-name" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signup-email" class="form-control" placeholder="name@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="signup-password" class="form-control" placeholder="Min. 6 characters"
+                        required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; justify-content: center; padding: 16px;">Create Account</button>
+            </form>
+            <div style="text-align: center; margin-top: 24px;">
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Already have an account? <a href="#"
+                        id="to-login" style="color: var(--primary); font-weight: 700; text-decoration: none;">Sign
+                        In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Wrapper -->
+    <div id="main-app" class="app-wrapper hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="#" class="sidebar-logo">
+                <i class="fa-solid fa-wallet"></i>
+                <span>TRACKER</span>
+            </a>
+            <nav class="nav-links">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="transactions">
+                    <i class="fa-solid fa-list-ul"></i>
+                    <span>Transactions</span>
+                </a>
+                <a href="#" class="nav-item" id="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-user"
+                style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; background: #f8fafc;">
+                <div id="user-avatar" class="avatar-img">?</div>
+                <div style="overflow: hidden;">
+                    <p id="user-name-display"
+                        style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis;">User
+                    </p>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);">Premium Plan</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="greeting-text">Overview</h1>
+                    <p id="current-date-display">Today is Wednesday, March 11</p>
+                </div>
+                <div class="user-controls">
+                    <button id="add-expense-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> <span class="mobile-hidden">Add Expense</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Large Balance Card -->
+                <div class="card balance-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p style="font-weight: 500; opacity: 0.9;">Current Month Total</p>
+                            <h2 id="month-total-display" style="font-size: 3rem; font-weight: 800; margin: 8px 0;">₹0.00
+                            </h2>
+                        </div>
+                        <i class="fa-solid fa-indian-rupee-sign" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                    </div>
+                    <div class="chart-container" style="height: 180px; margin-top: 24px;">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Summary -->
+                <div class="card summary-card">
+                    <h3 style="margin-bottom: 24px;">Quick Summary</h3>
+                    <div id="category-summary-list" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- JS will populate -->
+                    </div>
+                </div>
+
+                <!-- Category Breakdown Grid (Small Cards) -->
+                <div class="card category-card" data-category="Food">
+                    <div class="cat-icon cat-food"><i class="fa-solid fa-utensils"></i></div>
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Food</p>
+                        <h4 id="total-food" style="font-weight: 700;">₹0.00</h4>
+                    </div>
+                </div>
+                <div class="card category-card" data-category="Travel">
+                    <div class="cat-icon cat-travel"><i class="fa-solid fa-plane"></i></div>
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Travel</p>
+                        <h4 id="total-travel" style="font-weight: 700;">₹0.00</h4>
+                    </div>
+                </div>
+                <div class="card category-card" data-category="Shopping">
+                    <div class="cat-icon cat-shopping"><i class="fa-solid fa-bag-shopping"></i></div>
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Shopping</p>
+                        <h4 id="total-shopping" style="font-weight: 700;">₹0.00</h4>
+                    </div>
+                </div>
+                <div class="card category-card" data-category="Bills">
+                    <div class="cat-icon cat-bills"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Bills</p>
+                        <h4 id="total-bills" style="font-weight: 700;">₹0.00</h4>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="card data-card" style="grid-column: span 12;">
+                    <div class="card-header">
+                        <h2>Recent Transactions</h2>
+                        <div style="display: flex; gap: 12px;">
+                            <select id="filter-category" class="form-control" style="width: 160px; padding: 8px 12px;">
+                                <option value="All">All Categories</option>
+                                <option value="Food">Food</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Bills">Bills</option>
+                                <option value="Others">Others</option>
+                            </select>
+                            <input type="month" id="filter-month" class="form-control"
+                                style="width: 160px; padding: 8px 12px;">
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Note</th>
+                                    <th>Amount</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expense-list-v2">
+                                <!-- Expenses will be injected here -->
+                            </tbody>
+                        </table>
+                        <div id="empty-state" class="hidden"
+                            style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                            <i class="fa-solid fa-receipt"
+                                style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>No transactions found for this period.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="add-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                <h2 style="font-weight: 800;">Add Transaction</h2>
+                <button id="close-modal-btn" class="btn btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="add-expense-form">
+                <div class="input-group">
+                    <label>Amount</label>
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700;">₹</span>
+                        <input type="number" id="amount" class="form-control" placeholder="0.00" required min="1"
+                            step="0.01" style="padding-left: 32px; font-weight: 700; font-size: 1.25rem;">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Category</label>
+                    <select id="category" class="form-control" required>
+                        <option value="" disabled selected>Choose a category</option>
+                        <option value="Food">Food & Dining</option>
+                        <option value="Travel">Travel & Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills & Utilities</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+                <div class="input-group">
+                    <label>Note (Optional)</label>
+                    <input type="text" id="notes" class="form-control" placeholder="e.g. Lunch with friends">
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                    <button type="button" id="cancel-btn" class="btn btn-icon"
+                        style="flex: 1; height: 50px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="flex: 2; height: 50px; justify-content: center;">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Legacy list for compatibility during development -->
+    <ul id="expense-list" class="hidden"></ul>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+    <style>
+        @keyframes slide {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(200%);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .mobile-hidden {
+                display: none;
+            }
+        }
+    </style>
+</body>
+
+</html>

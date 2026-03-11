@@ -1,0 +1,22 @@
+{
+    "name": "my-expense-tracker",
+    "version": "1.0.0",
+    "description": "Expense tracker application",
+    "main": "app.js",
+    "scripts": {
+        "build": "cd server && npm install",
+        "start": "cd server && node server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@capacitor/android": "^8.1.0",
+        "@capacitor/assets": "^3.0.5",
+        "@capacitor/cli": "^8.1.0",
+        "@capacitor/core": "^8.1.0",
+        "@capacitor/ios": "^8.1.0",
+        "@capacitor/splash-screen": "^8.0.1"
+    }
+}
