@@ -1,14 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Expense = require('../models/Expense');
+const { protect } = require('./middleware');
+
+// Apply protection to all routes below
+router.use(protect);
 
 // GET /api/expenses - Get all expenses with optional filters
 router.get('/', async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
         const { category, month, startDate, endDate } = req.query;
 
         // Build query filter
-        let filter = {};
+        let filter = { userId: req.user._id };
 
         if (category && category !== 'All') {
             filter.category = category;
@@ -58,11 +65,16 @@ router.get('/stats/monthly', async (req, res) => {
             });
         }
 
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
+
         const [year, monthNum] = month.split('-');
         const startOfMonth = new Date(year, monthNum - 1, 1);
         const endOfMonth = new Date(year, monthNum, 0, 23, 59, 59);
 
         const expenses = await Expense.find({
+            userId: req.user._id,
             date: { $gte: startOfMonth, $lte: endOfMonth }
         }).lean();
 
@@ -108,9 +120,12 @@ router.get('/stats/monthly', async (req, res) => {
 // GET /api/expenses/:id - Get single expense for the current user
 router.get('/:id', async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
         const expense = await Expense.findOne({
             _id: req.params.id,
-            userId: req.user.id // Ensure expense belongs to the current user
+            userId: req.user._id // Ensure expense belongs to the current user
         });
 
         if (!expense) {
@@ -137,6 +152,9 @@ router.get('/:id', async (req, res) => {
 // POST /api/expenses - Create new expense for the current user
 router.post('/', async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
         const { amount, category, date, notes } = req.body;
 
         // Validate required fields
@@ -152,7 +170,7 @@ router.post('/', async (req, res) => {
             category,
             date,
             notes: notes || '',
-            userId: req.user.id // Associate expense with the current user
+            userId: req.user._id // Explicitly use _id
         });
 
         res.status(201).json({
@@ -161,21 +179,20 @@ router.post('/', async (req, res) => {
             data: expense
         });
     } catch (error) {
-        console.error('Error creating expense:', error);
+        console.error('Error creating expense ERROR:', error);
 
         // Handle validation errors
         if (error.name === 'ValidationError') {
             return res.status(400).json({
                 success: false,
-                message: 'Validation error',
-                errors: Object.values(error.errors).map(e => e.message)
+                message: Object.values(error.errors).map(e => e.message).join(', ')
             });
         }
 
         res.status(500).json({
             success: false,
             message: 'Failed to create expense',
-            error: error.message
+            error: error.message // Keep for debugging
         });
     }
 });
@@ -183,10 +200,13 @@ router.post('/', async (req, res) => {
 // PUT /api/expenses/:id - Update expense for the current user
 router.put('/:id', async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
         const { amount, category, date, notes } = req.body;
 
         const expense = await Expense.findOneAndUpdate(
-            { _id: req.params.id, userId: req.user.id }, // Find by ID and user ID
+            { _id: req.params.id, userId: req.user._id }, // Find by ID and user ID
             { amount, category, date, notes },
             { new: true, runValidators: true }
         );
@@ -225,12 +245,18 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/expenses/:id - Delete expense
 router.delete('/:id', async (req, res) => {
     try {
-        const expense = await Expense.findByIdAndDelete(req.params.id);
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
+        const expense = await Expense.findOneAndDelete({
+            _id: req.params.id,
+            userId: req.user._id
+        });
 
         if (!expense) {
             return res.status(404).json({
                 success: false,
-                message: 'Expense not found'
+                message: 'Expense not found or unauthorized'
             });
         }
 

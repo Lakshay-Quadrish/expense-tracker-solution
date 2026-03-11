@@ -19,6 +19,13 @@ exports.protect = async (req, res, next) => {
         // 2) Verification token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
 
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token payload'
+            });
+        }
+
         // 3) Check if user still exists
         const currentUser = await User.findById(decoded.id);
         if (!currentUser) {

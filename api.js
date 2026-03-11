@@ -3,7 +3,7 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.startsWith('192.168.');
 const API_BASE_URL = isProduction
     ? '/api'
-    : (isMobile ? 'http://192.168.1.6:3000/api' : 'http://localhost:3000/api');
+    : (isMobile ? 'http://192.168.1.4:3000/api' : 'http://localhost:3000/api');
 
 // API Client for Expense Tracker
 const API = {
@@ -117,7 +117,10 @@ const API = {
             });
 
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Failed to create expense');
+            if (!response.ok) {
+                const errorMsg = result.error ? `${result.message}: ${result.error}` : result.message;
+                throw new Error(errorMsg || 'Failed to create expense');
+            }
             return result.data;
         } catch (error) {
             console.error('Error creating expense:', error);
@@ -133,7 +136,10 @@ const API = {
             });
 
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Failed to delete expense');
+            if (!response.ok) {
+                const errorMsg = result.error ? `${result.message}: ${result.error}` : result.message;
+                throw new Error(errorMsg || 'Failed to delete expense');
+            }
             return result.data;
         } catch (error) {
             console.error('Error deleting expense:', error);

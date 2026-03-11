@@ -22,7 +22,7 @@ if not exist "node_modules\" (
 echo.
 echo Starting server...
 echo.
-echo Your phone should connect to: http://192.168.1.6:3000
+echo Your phone should connect to: http://192.168.1.4:3000
 echo.
 
 node server.js

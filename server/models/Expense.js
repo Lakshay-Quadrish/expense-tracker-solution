@@ -19,7 +19,9 @@ const expenseSchema = new mongoose.Schema({
         required: [true, 'Date is required'],
         validate: {
             validator: function (value) {
-                return value <= new Date();
+                const today = new Date();
+                today.setHours(23, 59, 59, 999); // Allow any time today
+                return value <= today;
             },
             message: 'Date cannot be in the future'
         }

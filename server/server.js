@@ -3,22 +3,24 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 const expenseRoutes = require('./routes/expenses');
 const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors()); // Enable CORS for frontend communication
-app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-
-// Request logging middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
+// Production Middleware
+app.use(helmet({
+    contentSecurityPolicy: false, // Disabled for simple CDNs used in this project
+}));
+app.use(compression());
+app.use(morgan('combined'));
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
@@ -87,7 +89,7 @@ app.use((error, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on:`);
     console.log(`   Local:   http://localhost:${PORT}`);
-    console.log(`   Network: http://192.168.1.6:${PORT}`);
+    console.log(`   Network: http://192.168.1.4:${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`\n📱 Mobile Access: Connect your phone to the same Wi-Fi and use the Network URL`);
     console.log(`\n📚 API Documentation:`);
